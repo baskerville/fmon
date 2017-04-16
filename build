@@ -1,0 +1,4 @@
+#! /bin/sh
+
+CC=${CC:-"arm-linux-gnueabihf-gcc"}
+$CC -s -std=c99 -o fmon fmon.c
