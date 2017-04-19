@@ -31,7 +31,7 @@ unsigned int qhash(const char *id)
 	return h;
 }
 
-/* /mnt/onboard/apps/koreader.png -> file____mnt_onboard_apps_koreader_png */
+/* /mnt/onboard/icons/koreader.png -> file____mnt_onboard_icons_koreader_png */
 char *id_from_path(const char *path)
 {
 	size_t len = strlen(path);

@@ -2,7 +2,7 @@
 
 SD_DIR=/mnt/onboard
 FMON_BIN=/usr/local/fmon/bin/fmon
-ICONS_DIR="${SD_DIR}/apps"
+ICONS_DIR="${SD_DIR}/icons"
 SCRIPTS_DIR="${SD_DIR}/.adds"
 
 [ -e /mnt/onboard/.kobo/version ] || exit 1
