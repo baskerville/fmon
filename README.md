@@ -9,13 +9,13 @@ In each of the following situations, your device will automatically reboot after
 ### Initial
 
 ```
-cp -r dist/ SD_ROOT
+unzip fmon.zip -d SD_ROOT
 ```
 
 ### Firmware Upgrade
 
 ```
-cp dist/.kobo/KoboRoot.tgz SD_ROOT/.kobo/
+unzip fmon.zip -d SD_ROOT .kobo/KoboRoot.tgz
 ```
 
 ## Adding an app
