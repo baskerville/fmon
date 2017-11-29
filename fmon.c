@@ -10,11 +10,17 @@
 #include <linux/limits.h>
 #include <sys/inotify.h>
 
+#define LENGTH(x)  (sizeof(x) / sizeof(*x))
 #define EVENT_SIZE (sizeof(struct inotify_event))
 #define BUF_LENGTH (EVENT_SIZE + NAME_MAX + 1)
 #define ID_PREFIX "file___"
-#define TN_SUFFIX " - N3_LIBRARY_FULL.parsed"
+#define TN_SUFFIX_LIBRARY_GRID " - N3_LIBRARY_GRID.parsed"
+#define TN_SUFFIX_LIBRARY_FULL " - N3_LIBRARY_FULL.parsed"
+#define TN_SUFFIX_FULL " - N3_FULL.parsed"
+#define PATH_FORMAT "%s/.kobo-images/%d/%d/%s%s"
 #define SD_CARD_PATH "/mnt/onboard"
+
+const char *TN_SUFFIXES[] = {TN_SUFFIX_LIBRARY_GRID, TN_SUFFIX_LIBRARY_FULL, TN_SUFFIX_FULL};
 
 /* QtQHash */
 unsigned int qhash(const char *id)
@@ -92,13 +98,20 @@ int main(int argc, char *argv[])
 				unsigned int hash = qhash(id);
 				unsigned int dir1 = hash & 0xff;
 				unsigned int dir2 = (hash & 0xff00) >> 8;
-				snprintf(tn, PATH_MAX, "%s/.kobo-images/%d/%d/%s" TN_SUFFIX,
-					 SD_CARD_PATH, dir1, dir2, id);
-				free(id);
-				if (access(tn, F_OK) == 0) {
-					if (system(cmd) < 0) {
-						err(EX_OSERR, "system");
+				int c = 0;
+				for (int j = 0; j < LENGTH(TN_SUFFIXES); j++) {
+					snprintf(tn, PATH_MAX, PATH_FORMAT, SD_CARD_PATH, dir1, dir2, id, TN_SUFFIXES[j]);
+					if (access(tn, F_OK) != 0) {
+						break;
 					}
+					c++;
+				}
+				free(id);
+				if (c < LENGTH(TN_SUFFIXES)) {
+					continue;
+				}
+				if (system(cmd) < 0) {
+					err(EX_OSERR, "system");
 				}
 			} else {
 				goto end;
