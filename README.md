@@ -1,42 +1,27 @@
 ## Description
 
-A daemon for launching programs on the Kobo e-readers.
+A daemon for launching programs on the *Kobo* e-readers.
 
 ## Installation
 
-In each of the following situations, your device will automatically reboot after having been disconnected.
-
-### Initial
-
 ```
-unzip fmon.zip -d SD_ROOT
+unzip fmon-VERSION.zip -d SD_ROOT
 ```
 
-### Firmware Upgrade
+This command also needs to be issued after each firmware update.
 
-```
-unzip fmon.zip -d SD_ROOT .kobo/KoboRoot.tgz
-```
+## Add a shortcut
 
-## Adding an app
+To create a shortcut for a script named `plato.sh`, you should place the script in `SD_ROOT/.adds/plato` and the icon (named `plato.png`) in `SD_ROOT/icons`.
 
-Here's how you might add an icon for a program called *chess*:
+Add the icon to a collection, set the view to *List View* and open the icon.
 
-- Edit `SD_ROOT/.adds/fmon/fmon.sh` and insert *chess* into the list of apps (`for app in koreader sketch chess; do`…).
-- Create `SD_ROOT/icons/chess.png`.
-- Create `SD_ROOT/.adds/chess/chess.sh`.
+On the next restart, opening the icon will execute the corresponding script.
 
-After rebooting, open the *chess* icon and close it (this will finalize the thumbnail creation process).
+## Remove a shortcut
 
-You can then open the *chess* icon to launch its script.
+Remove the corresponding icon within *Kobo*'s environment.
 
-## Replacing an existing icon
+## Replace an icon
 
-In order to replace an existing icon, you must first remove the icon file within *nickel* (the built-in Kobo reader).
-
-This will have the following effects:
-
-- Stop the related *fmon* process.
-- Remove the outdated thumbnails.
-
-You can then connect your device and copy the updated icon in `SD_ROOT/icons`.
+Instead of overwriting the existing icon, you'll need to remove it first, within *Kobo*'s environment.

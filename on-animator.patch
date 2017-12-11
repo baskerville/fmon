@@ -1,0 +1,12 @@
+diff -ru a/etc/init.d/on-animator.sh b/etc/init.d/on-animator.sh
+--- a/etc/init.d/on-animator.sh	2017-12-11 18:25:42.000000000 +0100
++++ b/etc/init.d/on-animator.sh	2017-12-11 18:25:52.000000000 +0100
+@@ -2,6 +2,8 @@
+ 
+ PRODUCT=`/bin/sh /bin/kobo_config.sh`;
+ [ $PRODUCT != trilogy ] && PREFIX=$PRODUCT-
++FMON_SCRIPT=/mnt/onboard/.adds/fmon/fmon.sh
++[ -x "$FMON_SCRIPT" ] && "$FMON_SCRIPT" &
+ 
+ i=0;
+ while true; do
