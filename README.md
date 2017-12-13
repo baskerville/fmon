@@ -4,6 +4,8 @@ A daemon for launching programs on the *Kobo* e-readers.
 
 ## Installation
 
+Extract the archive given on the release page to the root of the SD card:
+
 ```
 unzip fmon-VERSION.zip -d SD_ROOT
 ```
