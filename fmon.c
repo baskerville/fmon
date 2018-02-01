@@ -4,8 +4,11 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <fcntl.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <poll.h>
+#include <mntent.h>
 #include <sysexits.h>
 #include <linux/limits.h>
 #include <sys/inotify.h>
@@ -52,6 +55,54 @@ char *id_from_path(const char *path)
 	return result;
 }
 
+bool is_target_mounted(const char *path)
+{
+	FILE *mtab = NULL;
+	struct mntent *part = NULL;
+	bool is_mounted = false;
+
+	if ((mtab = setmntent("/proc/mounts", "r")) != NULL) {
+		while ((part = getmntent(mtab)) != NULL) {
+			if ((part->mnt_dir != NULL) && (strcmp(part->mnt_dir, path)) == 0) {
+				is_mounted = true;
+				break;
+			}
+		}
+		endmntent(mtab);
+	}
+
+	return is_mounted;
+}
+
+bool wait_for_target(const char *path)
+{
+	struct pollfd pfd;
+	int mfd = open("/proc/mounts", O_RDONLY, 0);
+
+	pfd.fd = mfd;
+	pfd.events = POLLERR | POLLPRI;
+	pfd.revents = 0;
+
+	uint8_t tries = 0;
+
+	while (poll(&pfd, 1, -1) >= 0) {
+		if (pfd.revents & POLLERR) {
+			tries++;
+			if (is_target_mounted(path)) {
+				return true;
+			}
+		}
+
+		pfd.revents = 0;
+
+		if (tries > 5) {
+			break;
+		}
+	}
+
+	return false;
+}
+
 int main(int argc, char *argv[])
 {
 	if (argc != 3) {
@@ -60,19 +111,20 @@ int main(int argc, char *argv[])
 
 	char *path = argv[1];
 	char *cmd = argv[2];
-	int fd = inotify_init();
-
-	if (fd < 0) {
-		err(EX_OSERR, "inotify_init");
-	}
-
-	int wd = inotify_add_watch(fd, path, IN_OPEN);
-
-	if (wd < 0) {
-		err(EX_OSERR, "inotify_add_watch");
-	}
 
 	while (true) {
+		int fd = inotify_init();
+
+		if (fd < 0) {
+			err(EX_OSERR, "inotify_init");
+		}
+
+		int wd = inotify_add_watch(fd, path, IN_OPEN);
+
+		if (wd < 0) {
+			err(EX_OSERR, "inotify_add_watch");
+		}
+
 		char buf[BUF_LENGTH];
 		int len;
 
@@ -89,7 +141,9 @@ int main(int argc, char *argv[])
 			err(EX_OSERR, "read");
 		}
 
+		bool unmounted = false;
 		int i = 0;
+
 		while (i < len) {
 			struct inotify_event *event = (struct inotify_event *) &buf[i];
 			if (event->mask & IN_OPEN) {
@@ -114,13 +168,20 @@ int main(int argc, char *argv[])
 					err(EX_OSERR, "system");
 				}
 			} else {
-				goto end;
+				if (event->mask & IN_UNMOUNT) {
+					unmounted = true;
+				}
+				break;
 			}
 			i += EVENT_SIZE + event->len;
 		}
+
+		close(fd);
+
+		if (!unmounted || !wait_for_target(SD_CARD_PATH)) {
+			break;
+		}
 	}
 
-end:
-	close(fd);
 	return EXIT_SUCCESS;
 }
