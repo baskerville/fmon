@@ -74,7 +74,7 @@ bool is_target_mounted(const char *path)
 	return is_mounted;
 }
 
-bool wait_for_target(const char *path)
+void wait_for_target(const char *path)
 {
 	struct pollfd pfd;
 	int mfd = open("/proc/mounts", O_RDONLY, 0);
@@ -89,7 +89,7 @@ bool wait_for_target(const char *path)
 		if (pfd.revents & POLLERR) {
 			tries++;
 			if (is_target_mounted(path)) {
-				return true;
+				break;
 			}
 		}
 
@@ -99,8 +99,6 @@ bool wait_for_target(const char *path)
 			break;
 		}
 	}
-
-	return false;
 }
 
 int main(int argc, char *argv[])
@@ -141,7 +139,6 @@ int main(int argc, char *argv[])
 			err(EX_OSERR, "read");
 		}
 
-		bool unmounted = false;
 		int i = 0;
 
 		while (i < len) {
@@ -168,19 +165,14 @@ int main(int argc, char *argv[])
 					err(EX_OSERR, "system");
 				}
 			} else {
-				if (event->mask & IN_UNMOUNT) {
-					unmounted = true;
+				if (!is_target_mounted(SD_CARD_PATH)) {
+					wait_for_target(SD_CARD_PATH);
 				}
-				break;
 			}
 			i += EVENT_SIZE + event->len;
 		}
 
 		close(fd);
-
-		if (!unmounted || !wait_for_target(SD_CARD_PATH)) {
-			break;
-		}
 	}
 
 	return EXIT_SUCCESS;
