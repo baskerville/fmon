@@ -158,11 +158,10 @@ int main(int argc, char *argv[])
 					c++;
 				}
 				free(id);
-				if (c < LENGTH(TN_SUFFIXES)) {
-					continue;
-				}
-				if (system(cmd) < 0) {
-					err(EX_OSERR, "system");
+				if (c == LENGTH(TN_SUFFIXES)) {
+					if (system(cmd) < 0) {
+						err(EX_OSERR, "system");
+					}
 				}
 			} else {
 				if (!is_target_mounted(SD_CARD_PATH)) {
